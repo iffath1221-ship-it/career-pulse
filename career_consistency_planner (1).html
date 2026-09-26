@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerPulse - Career Consistency & Productivity Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        dark: {
+                            bg: '#0b0f19',
+                            card: '#111827',
+                            border: '#1f2937',
+                            input: '#1f2937'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .glass-light {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        .heat-level-0 { background-color: rgba(229, 231, 235, 0.4); }
+        .dark .heat-level-0 { background-color: rgba(31, 41, 55, 0.5); }
+        .heat-level-1 { background-color: #c7d2fe; }
+        .dark .heat-level-1 { background-color: #312e81; }
+        .heat-level-2 { background-color: #818cf8; }
+        .dark .heat-level-2 { background-color: #4338ca; }
+        .heat-level-3 { background-color: #6366f1; }
+        .dark .heat-level-3 { background-color: #6366f1; }
+        .heat-level-4 { background-color: #4338ca; }
+        .dark .heat-level-4 { background-color: #818cf8; }
+
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .pulse-badge {
+            animation: pulse-subtle 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- AUTHENTICATION OVERLAY (SIGN UP / SIGN IN) -->
+    <div id="auth-overlay" class="fixed inset-0 z-50 bg-gray-900/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-md rounded-3xl p-8 shadow-2xl space-y-6 relative overflow-hidden">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-brand-500/30 mx-auto">
+                    C
+                </div>
+                <h2 id="auth-title" class="text-2xl font-extrabold tracking-tight">Create Your Account</h2>
+                <p id="auth-subtitle" class="text-xs text-gray-500 dark:text-gray-400">Start tracking your career consistency & weekly schedules.</p>
+            </div>
+
+            <!-- Sign Up Form -->
+            <form id="form-signup" onsubmit="handleSignUp(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Full Name</label>
+                    <input type="text" id="signup-name" required placeholder="Alex Morgan" class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Email Address</label>
+                    <input type="email" id="signup-email" required placeholder="alex@career.com" class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Career Goal / Track</label>
+                    <input type="text" id="signup-track" required placeholder="e.g., Senior Full-Stack Engineer" class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Password</label>
+                    <input type="password" id="signup-password" required placeholder="••••••••" class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-brand-500/30 transition">
+                    Create Career Account
+                </button>
+            </form>
+
+            <!-- Sign In Form (Hidden by default) -->
+            <form id="form-signin" onsubmit="handleSignIn(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Email Address</label>
+                    <input type="email" id="signin-email" required placeholder="alex@career.com" class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Password</label>
+                    <input type="password" id="signin-password" required placeholder="••••••••" class="w-full px-3 py-2.5 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+                <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-brand-500/30 transition">
+                    Sign In to Planner
+                </button>
+            </form>
+
+            <div class="text-center pt-2 border-t border-gray-200 dark:border-dark-border">
+                <button id="auth-switch-btn" onclick="toggleAuthMode()" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
+                    Already have an account? Sign In
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Banner Simulator -->
+    <div id="notification-banner" class="hidden fixed top-4 right-4 left-4 md:left-auto md:w-96 bg-brand-600 text-white p-4 rounded-xl shadow-2xl z-50 transition-all transform translate-y-0 duration-300 flex items-start gap-3 border border-brand-400">
+        <div class="p-2 bg-white/20 rounded-lg shrink-0">
+            <i data-lucide="bell-ring" class="w-5 h-5 text-white"></i>
+        </div>
+        <div class="flex-1">
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-semibold uppercase tracking-wider text-brand-200">Upcoming Time Block</span>
+                <span id="notif-time" class="text-xs opacity-80">In 10 mins</span>
+            </div>
+            <p id="notif-title" class="font-bold text-sm">System Design - Distributed Caching</p>
+            <p id="notif-subtitle" class="text-xs opacity-90 mt-0.5">02:00 PM - 03:30 PM (Coding & Arch)</p>
+            <div class="mt-3 flex gap-2">
+                <button onclick="handleNotifAction('complete')" class="px-2.5 py-1 text-xs bg-white text-brand-700 font-bold rounded-md hover:bg-brand-50 transition">Start Now</button>
+                <button onclick="dismissNotif()" class="px-2.5 py-1 text-xs bg-brand-700 text-white rounded-md hover:bg-brand-800 transition">Snooze</button>
+            </div>
+        </div>
+        <button onclick="dismissNotif()" class="text-white/70 hover:text-white">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR NAV -->
+        <aside class="w-20 md:w-64 bg-white dark:bg-dark-card border-r border-gray-200 dark:border-dark-border flex flex-col justify-between transition-all duration-200 z-20">
+            <div>
+                <!-- Logo -->
+                <div class="p-4 md:p-6 flex items-center gap-3 border-b border-gray-200 dark:border-dark-border">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-500/30">
+                        C
+                    </div>
+                    <div class="hidden md:block">
+                        <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-brand-600 to-indigo-400 bg-clip-text text-transparent">CareerPulse</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Consistency Planner</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-3 space-y-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-colors text-brand-600 dark:text-brand-500 bg-brand-50 dark:bg-brand-500/10">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Dashboard</span>
+                    </button>
+
+                    <button onclick="switchTab('weekly')" id="nav-weekly" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors">
+                        <i data-lucide="calendar" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Weekly Time-Block</span>
+                    </button>
+
+                    <button onclick="switchTab('monthly')" id="nav-monthly" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors">
+                        <i data-lucide="target" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Monthly Focus</span>
+                    </button>
+
+                    <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors">
+                        <i data-lucide="line-chart" class="w-5 h-5"></i>
+                        <span class="hidden md:inline">Consistency Matrix</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Bottom Profile & Settings Section -->
+            <div class="p-3 border-t border-gray-200 dark:border-dark-border space-y-2">
+                <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between p-2.5 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+                        <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
+                        <span class="hidden md:inline text-sm font-medium">Appearance</span>
+                    </div>
+                    <span class="hidden md:inline text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 dark-mode-label">Dark</span>
+                </button>
+
+                <div class="flex items-center justify-between p-2 rounded-xl bg-gray-100 dark:bg-gray-800/50">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div id="user-avatar" class="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                            JS
+                        </div>
+                        <div class="hidden md:block overflow-hidden">
+                            <p id="user-display-name" class="text-xs font-bold truncate">Guest User</p>
+                            <p id="user-display-track" class="text-[10px] text-gray-500 dark:text-gray-400 truncate">Career Planner</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" title="Log Out" class="text-gray-400 hover:text-rose-500 p-1.5 transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-gray-50 dark:bg-dark-bg">
+            
+            <!-- TOP BAR HEADER -->
+            <header class="sticky top-0 z-10 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border-b border-gray-200 dark:border-dark-border px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="page-title" class="text-xl font-bold tracking-tight">Career Execution Dashboard</h2>
+                        <p id="page-subtitle" class="text-xs text-gray-500 dark:text-gray-400">Plan consistently, execute relentlessly.</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Week Picker Switcher -->
+                    <div class="flex items-center bg-gray-100 dark:bg-gray-800/80 rounded-xl p-1 text-xs border border-gray-200 dark:border-gray-700">
+                        <button onclick="shiftWeek(-1)" class="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg transition">
+                            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        </button>
+                        <span id="current-week-label" class="px-3 font-semibold text-gray-700 dark:text-gray-300">Week of Sept 21 - Sept 27, 2026</span>
+                        <button onclick="shiftWeek(1)" class="p-1.5 hover:bg-white dark:hover:bg-gray-700 rounded-lg transition">
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Trigger Notification Test Button -->
+                    <button onclick="triggerNotificationSim()" title="Simulate Reminder Notification" class="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-gray-700 transition relative">
+                        <i data-lucide="bell" class="w-4 h-4"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full"></span>
+                    </button>
+
+                    <!-- Add Quick Action -->
+                    <button onclick="openModal('task')" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-brand-500/20 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>New Time Block</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- VIEW CONTAINER -->
+            <div class="p-6 max-w-7xl mx-auto w-full space-y-6 pb-16">
+
+                <!-- 1. DASHBOARD VIEW -->
+                <div id="view-dashboard" class="space-y-6">
+                    
+                    <!-- KPI HEADER METRICS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        
+                        <!-- Streak Card -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border shadow-sm flex items-center justify-between relative overflow-hidden">
+                            <div class="space-y-1 z-10">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Current Streak</span>
+                                <div class="flex items-baseline gap-2">
+                                    <h3 id="stat-streak" class="text-3xl font-extrabold tracking-tight">14</h3>
+                                    <span class="text-sm font-semibold text-amber-500">Days</span>
+                                </div>
+                                <p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                                    <i data-lucide="trending-up" class="w-3 h-3"></i> Best streak: 22 Days
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center text-2xl pulse-badge shrink-0">
+                                🔥
+                            </div>
+                            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
+                        </div>
+
+                        <!-- Consistency Score -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border shadow-sm flex items-center justify-between relative overflow-hidden">
+                            <div class="space-y-1 z-10">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Consistency Rating</span>
+                                <div class="flex items-baseline gap-1">
+                                    <h3 id="stat-consistency" class="text-3xl font-extrabold tracking-tight">88</h3>
+                                    <span class="text-lg font-bold text-brand-500">%</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400">Based on last 30 scheduled blocks</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center shrink-0">
+                                <i data-lucide="activity" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Goal Progress -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border shadow-sm flex items-center justify-between relative overflow-hidden">
+                            <div class="space-y-1 z-10">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monthly Goals</span>
+                                <div class="flex items-baseline gap-2">
+                                    <h3 id="stat-monthly-completed" class="text-3xl font-extrabold tracking-tight">3</h3>
+                                    <span class="text-sm font-semibold text-gray-400">/ <span id="stat-monthly-total">4</span> Done</span>
+                                </div>
+                                <div class="w-32 bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden mt-1">
+                                    <div id="stat-monthly-bar" class="bg-emerald-500 h-full rounded-full" style="width: 75%"></div>
+                                </div>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+                                <i data-lucide="target" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                        <!-- Time Investment -->
+                        <div class="p-5 rounded-2xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border shadow-sm flex items-center justify-between relative overflow-hidden">
+                            <div class="space-y-1 z-10">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Weekly Time Logged</span>
+                                <div class="flex items-baseline gap-1">
+                                    <h3 id="stat-hours" class="text-3xl font-extrabold tracking-tight">21.5</h3>
+                                    <span class="text-sm font-semibold text-gray-400">hrs</span>
+                                </div>
+                                <p class="text-[11px] text-brand-600 dark:text-brand-400 font-medium">Target: 25 hrs / week</p>
+                            </div>
+                            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+                                <i data-lucide="clock" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- DASHBOARD TWO-COLUMN SECTION -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Left Column: Today's Time Blocks -->
+                        <div class="lg:col-span-2 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="calendar-days" class="w-5 h-5 text-brand-500"></i>
+                                    <h3 class="font-bold text-lg">Today's Schedule</h3>
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300" id="today-date-badge">Today</span>
+                                </div>
+                                <button onclick="switchTab('weekly')" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1">
+                                    Full Time-Table <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+
+                            <div id="dashboard-today-list" class="space-y-3">
+                                <!-- Dynamic Today Tasks Injected Here -->
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Focus Areas & Fast Check-In -->
+                        <div class="space-y-6">
+                            <!-- High Level Monthly Goals Overview -->
+                            <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border p-5 rounded-2xl shadow-sm space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-bold text-base flex items-center gap-2">
+                                        <i data-lucide="flag" class="w-4 h-4 text-emerald-500"></i>
+                                        September Milestones
+                                    </h3>
+                                    <button onclick="openModal('goal')" class="text-xs font-medium text-brand-600 hover:underline">+ Add</button>
+                                </div>
+
+                                <div id="dashboard-goals-mini" class="space-y-3">
+                                    <!-- Dynamic Goals Injected Here -->
+                                </div>
+                            </div>
+
+                            <!-- Quick Quote or Motivation Banner -->
+                            <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 text-white space-y-2 shadow-lg relative overflow-hidden">
+                                <div class="flex items-center gap-2 text-xs text-brand-200 font-semibold uppercase tracking-wider">
+                                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                    Consistency Rule
+                                </div>
+                                <p class="text-sm font-medium italic opacity-95">
+                                    "We are what we repeatedly do. Excellence, then, is not an act, but a habit."
+                                </p>
+                                <p class="text-xs text-brand-200 text-right">— Aristotle</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- HEATMAP SECTION IN DASHBOARD -->
+                    <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border p-5 rounded-2xl shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-bold text-base">30-Day Activity Heatmap</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Daily consistency intensity based on completed schedule slots.</p>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-gray-500">
+                                <span>Less</span>
+                                <div class="flex gap-1">
+                                    <div class="w-3 h-3 rounded heat-level-0 border border-gray-200 dark:border-gray-700"></div>
+                                    <div class="w-3 h-3 rounded heat-level-1"></div>
+                                    <div class="w-3 h-3 rounded heat-level-2"></div>
+                                    <div class="w-3 h-3 rounded heat-level-3"></div>
+                                    <div class="w-3 h-3 rounded heat-level-4"></div>
+                                </div>
+                                <span>More</span>
+                            </div>
+                        </div>
+                        <div id="heatmap-grid" class="grid grid-cols-10 sm:grid-cols-15 md:grid-cols-30 gap-1.5 pt-2">
+                            <!-- Heatmap Cells Injected JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 2. WEEKLY TIMETABLE VIEW -->
+                <div id="view-weekly" class="hidden space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-200 dark:border-dark-border shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-xl">
+                                <i data-lucide="calendar" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg">Weekly Time-Block Matrix</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Map out your deep work, study, and career growth sessions.</p>
+                            </div>
+                        </div>
+
+                        <!-- Filter options -->
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+                            <span class="text-xs text-gray-400 font-medium">Category:</span>
+                            <button onclick="filterCategory('all')" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white" data-cat="all">All</button>
+                            <button onclick="filterCategory('Coding')" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300" data-cat="Coding">Coding</button>
+                            <button onclick="filterCategory('Learning')" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300" data-cat="Learning">Learning</button>
+                            <button onclick="filterCategory('Job Hunt')" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300" data-cat="Job Hunt">Job Hunt</button>
+                            <button onclick="filterCategory('Networking')" class="cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300" data-cat="Networking">Networking</button>
+                        </div>
+                    </div>
+
+                    <!-- 7-DAY GRID SYSTEM -->
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-4" id="weekly-grid-container">
+                        <!-- 7 Days dynamic rendering -->
+                    </div>
+                </div>
+
+                <!-- 3. MONTHLY GOALS VIEW -->
+                <div id="view-monthly" class="hidden space-y-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-xl">Monthly Career Objectives</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Break high-level milestones into manageable sub-tasks.</p>
+                        </div>
+                        <button onclick="openModal('goal')" class="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-brand-700 transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add New Goal
+                        </button>
+                    </div>
+
+                    <div id="monthly-goals-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Dynamic Monthly Goal Cards -->
+                    </div>
+                </div>
+
+                <!-- 4. ANALYTICS & CONSISTENCY MATRIX -->
+                <div id="view-analytics" class="hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Category Distribution Chart -->
+                        <div class="bg-white dark:bg-dark-card p-5 rounded-2xl border border-gray-200 dark:border-dark-border shadow-sm space-y-4">
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4 text-brand-500"></i>
+                                Time Spent by Category
+                            </h3>
+                            <div class="h-64 flex items-center justify-center">
+                                <canvas id="chart-category"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Trend Bar Chart -->
+                        <div class="lg:col-span-2 bg-white dark:bg-dark-card p-5 rounded-2xl border border-gray-200 dark:border-dark-border shadow-sm space-y-4">
+                            <h3 class="font-bold text-base flex items-center gap-2">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-500"></i>
+                                Weekly Time-Block Completion Trend
+                            </h3>
+                            <div class="h-64">
+                                <canvas id="chart-trend"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Consistency Deep-Dive Summary -->
+                    <div class="bg-white dark:bg-dark-card p-6 rounded-2xl border border-gray-200 dark:border-dark-border shadow-sm space-y-4">
+                        <h3 class="font-bold text-lg">Consistency Insights & Advice</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 space-y-1">
+                                <span class="text-xs font-bold uppercase text-emerald-700 dark:text-emerald-400">Peak Performance Day</span>
+                                <p class="text-base font-extrabold text-emerald-900 dark:text-emerald-200">Wednesday & Tuesday</p>
+                                <p class="text-xs text-emerald-700 dark:text-emerald-400">95% of planned blocks completed on these days.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 space-y-1">
+                                <span class="text-xs font-bold uppercase text-amber-700 dark:text-amber-400">Drop-off Risk</span>
+                                <p class="text-base font-extrabold text-amber-900 dark:text-amber-200">Friday Afternoons</p>
+                                <p class="text-xs text-amber-700 dark:text-amber-400">Consider lighter task loads after 3:00 PM.</p>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-brand-50 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-800/50 space-y-1">
+                                <span class="text-xs font-bold uppercase text-brand-700 dark:text-brand-400">Top Focus Category</span>
+                                <p class="text-base font-extrabold text-brand-900 dark:text-brand-200">Coding & Architecture</p>
+                                <p class="text-xs text-brand-700 dark:text-brand-400">14.5 Hours logged in deep work blocks.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: ADD TIME BLOCK TASK -->
+    <div id="modal-task" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-dark-border pb-3">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-brand-500"></i>
+                    Schedule Time Block
+                </h3>
+                <button onclick="closeModal('task')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="form-task" onsubmit="handleSaveTask(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Block Title</label>
+                    <input type="text" id="task-title" required placeholder="e.g., LeetCode Dynamic Programming" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Day of Week</label>
+                        <select id="task-day" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
+                        <select id="task-category" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                            <option value="Coding">Coding</option>
+                            <option value="Learning">Learning</option>
+                            <option value="Job Hunt">Job Hunt</option>
+                            <option value="Networking">Networking</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Start Time</label>
+                        <input type="time" id="task-start" required value="09:00" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-500 mb-1">End Time</label>
+                        <input type="time" id="task-end" required value="10:30" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Link to Monthly Goal (Optional)</label>
+                    <select id="task-goal-link" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                        <option value="">None / Standalone</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-dark-border">
+                    <button type="button" onclick="closeModal('task')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white rounded-xl shadow-md">Save Time Block</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD MONTHLY GOAL -->
+    <div id="modal-goal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-200 dark:border-dark-border pb-3">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i data-lucide="target" class="w-5 h-5 text-emerald-500"></i>
+                    Add Monthly Milestone
+                </h3>
+                <button onclick="closeModal('goal')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="form-goal" onsubmit="handleSaveGoal(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Goal Title</label>
+                    <input type="text" id="goal-title" required placeholder="e.g., System Design Masterclass" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Category</label>
+                    <select id="goal-category" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none">
+                        <option value="System Design">System Design</option>
+                        <option value="Algorithms">Algorithms</option>
+                        <option value="Portfolio">Portfolio</option>
+                        <option value="Networking">Networking</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Sub-tasks (Comma separated)</label>
+                    <textarea id="goal-subtasks" rows="3" placeholder="e.g., Learn Caching Strategies, Complete Load Balancer Module, Build Mock Architecture Diagram" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-dark-input focus:ring-2 focus:ring-brand-500 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-dark-border">
+                    <button type="button" onclick="closeModal('goal')" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md">Create Goal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- APPLICATION JAVASCRIPT LOGIC -->
+    <script>
+        // DEFAULT INITIAL DATA TEMPLATE FOR NEW USERS
+        const DEFAULT_USER_DATA = {
+            streak: 1,
+            monthlyGoals: [
+                {
+                    id: 'g1',
+                    title: 'Core Career Objective',
+                    category: 'System Design',
+                    subtasks: [
+                        { id: 'st1', text: 'Build weekly timetable habits', done: true },
+                        { id: 'st2', text: 'Complete monthly career milestone', done: false }
+                    ]
+                }
+            ],
+            weeklySchedule: [
+                { id: 't1', title: 'Career Learning Block', day: 0, start: '09:00', end: '10:30', category: 'Learning', goalId: 'g1', status: 'pending' },
+                { id: 't2', title: 'Deep Work Coding', day: 2, start: '14:00', end: '16:00', category: 'Coding', goalId: 'g1', status: 'completed' }
+            ]
+        };
+
+        let currentAuthMode = 'signup'; // 'signup' or 'signin'
+        let activeUser = null; // Currently signed in user object
+        let appData = DEFAULT_USER_DATA;
+        let currentTab = 'dashboard';
+        let currentActiveCategoryFilter = 'all';
+        let categoryChartObj = null;
+        let trendChartObj = null;
+
+        // LOCAL STORAGE USER MANAGEMENT
+        function getUsersDB() {
+            const users = localStorage.getItem('career_pulse_users');
+            return users ? JSON.parse(users) : {};
+        }
+
+        function saveUsersDB(db) {
+            localStorage.setItem('career_pulse_users', JSON.stringify(db));
+        }
+
+        function getActiveUserSession() {
+            const session = localStorage.getItem('career_pulse_session');
+            return session ? JSON.parse(session) : null;
+        }
+
+        function setActiveUserSession(user) {
+            if (user) {
+                localStorage.setItem('career_pulse_session', JSON.stringify(user));
+            } else {
+                localStorage.removeItem('career_pulse_session');
+            }
+        }
+
+        function loadState() {
+            activeUser = getActiveUserSession();
+            if (!activeUser) {
+                document.getElementById('auth-overlay').classList.remove('hidden');
+                return DEFAULT_USER_DATA;
+            } else {
+                document.getElementById('auth-overlay').classList.add('hidden');
+                updateUserProfileUI();
+                const db = getUsersDB();
+                if (db[activeUser.email] && db[activeUser.email].data) {
+                    return db[activeUser.email].data;
+                }
+                return DEFAULT_USER_DATA;
+            }
+        }
+
+        function saveState() {
+            if (!activeUser) return;
+            const db = getUsersDB();
+            if (db[activeUser.email]) {
+                db[activeUser.email].data = appData;
+                saveUsersDB(db);
+            }
+            renderAll();
+        }
+
+        // AUTHENTICATION HANDLERS
+        function toggleAuthMode() {
+            currentAuthMode = currentAuthMode === 'signup' ? 'signin' : 'signup';
+            const signupForm = document.getElementById('form-signup');
+            const signinForm = document.getElementById('form-signin');
+            const authTitle = document.getElementById('auth-title');
+            const authSubtitle = document.getElementById('auth-subtitle');
+            const switchBtn = document.getElementById('auth-switch-btn');
+
+            if (currentAuthMode === 'signin') {
+                signupForm.classList.add('hidden');
+                signinForm.classList.remove('hidden');
+                authTitle.innerText = 'Welcome Back';
+                authSubtitle.innerText = 'Sign in to access your weekly and monthly career plans.';
+                switchBtn.innerText = "Don't have an account? Sign Up";
+            } else {
+                signinForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                authTitle.innerText = 'Create Your Account';
+                authSubtitle.innerText = 'Start tracking your career consistency & weekly schedules.';
+                switchBtn.innerText = 'Already have an account? Sign In';
+            }
+        }
+
+        function handleSignUp(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim().toLowerCase();
+            const track = document.getElementById('signup-track').value.trim();
+            const password = document.getElementById('signup-password').value;
+
+            const db = getUsersDB();
+            if (db[email]) {
+                showToast('An account with this email already exists!');
+                return;
+            }
+
+            const newUser = {
+                name,
+                email,
+                track,
+                password,
+                data: JSON.parse(JSON.stringify(DEFAULT_USER_DATA))
+            };
+
+            db[email] = newUser;
+            saveUsersDB(db);
+
+            activeUser = { name, email, track };
+            setActiveUserSession(activeUser);
+            appData = newUser.data;
+
+            document.getElementById('auth-overlay').classList.add('hidden');
+            showToast(`Welcome ${name}! Your career planner is ready.`);
+            updateUserProfileUI();
+            renderAll();
+        }
+
+        function handleSignIn(e) {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value.trim().toLowerCase();
+            const password = document.getElementById('signin-password').value;
+
+            const db = getUsersDB();
+            const user = db[email];
+
+            if (!user || user.password !== password) {
+                showToast('Invalid email or password.');
+                return;
+            }
+
+            activeUser = { name: user.name, email: user.email, track: user.track };
+            setActiveUserSession(activeUser);
+            appData = user.data || DEFAULT_USER_DATA;
+
+            document.getElementById('auth-overlay').classList.add('hidden');
+            showToast(`Welcome back, ${user.name}!`);
+            updateUserProfileUI();
+            renderAll();
+        }
+
+        function logout() {
+            setActiveUserSession(null);
+            activeUser = null;
+            document.getElementById('auth-overlay').classList.remove('hidden');
+            showToast('Logged out successfully.');
+        }
+
+        function updateUserProfileUI() {
+            if (!activeUser) return;
+            document.getElementById('user-display-name').innerText = activeUser.name;
+            document.getElementById('user-display-track').innerText = activeUser.track || 'Career Focus';
+            
+            const initials = activeUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+            document.getElementById('user-avatar').innerText = initials || 'CP';
+        }
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            appData = loadState();
+            renderAll();
+            initCharts();
+            
+            // Check Dark Mode
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+            }
+        });
+
+        function renderAll() {
+            renderHeaderStats();
+            renderDashboardToday();
+            renderDashboardGoalsMini();
+            renderHeatmap();
+            renderWeeklyGrid();
+            renderMonthlyGoalsView();
+            populateGoalDropdown();
+            updateCharts();
+            lucide.createIcons();
+        }
+
+        // TAB SWITCHER
+        function switchTab(tab) {
+            currentTab = tab;
+            const tabs = ['dashboard', 'weekly', 'monthly', 'analytics'];
+            
+            tabs.forEach(t => {
+                const el = document.getElementById(`view-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (t === tab) {
+                    el.classList.remove('hidden');
+                    nav.className = "nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm text-brand-600 dark:text-brand-500 bg-brand-50 dark:bg-brand-500/10";
+                } else {
+                    el.classList.add('hidden');
+                    nav.className = "nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors";
+                }
+            });
+
+            // Update Header Titles
+            const titles = {
+                dashboard: { title: 'Career Execution Dashboard', sub: 'Plan consistently, execute relentlessly.' },
+                weekly: { title: 'Weekly Time-Blocking Schedule', sub: 'Your strategic breakdown for maximum output.' },
+                monthly: { title: 'Monthly Focus & Milestones', sub: 'Track macro career objectives and progress.' },
+                analytics: { title: 'Consistency Analytics Matrix', sub: 'Data-driven breakdown of your execution output.' }
+            };
+
+            document.getElementById('page-title').innerText = titles[tab].title;
+            document.getElementById('page-subtitle').innerText = titles[tab].sub;
+
+            if (tab === 'analytics') {
+                setTimeout(() => updateCharts(), 100);
+            }
+        }
+
+        // HEADER STATS COMPUTATION
+        function renderHeaderStats() {
+            document.getElementById('stat-streak').innerText = appData.streak;
+
+            // Compute Consistency Rating
+            const totalScheduled = appData.weeklySchedule.length;
+            const completedScheduled = appData.weeklySchedule.filter(t => t.status === 'completed').length;
+            const rating = totalScheduled > 0 ? Math.round((completedScheduled / totalScheduled) * 100) : 0;
+            document.getElementById('stat-consistency').innerText = rating;
+
+            // Monthly Goals Completion
+            let totalSubtasks = 0;
+            let completedSubtasks = 0;
+            appData.monthlyGoals.forEach(g => {
+                g.subtasks.forEach(st => {
+                    totalSubtasks++;
+                    if (st.done) completedSubtasks++;
+                });
+            });
+
+            const completedGoalsCount = appData.monthlyGoals.filter(g => {
+                return g.subtasks.length > 0 && g.subtasks.every(st => st.done);
+            }).length;
+
+            document.getElementById('stat-monthly-completed').innerText = completedGoalsCount;
+            document.getElementById('stat-monthly-total').innerText = appData.monthlyGoals.length;
+
+            const goalPct = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
+            document.getElementById('stat-monthly-bar').style.width = `${goalPct}%`;
+
+            // Calculate hours logged
+            let totalHours = 0;
+            appData.weeklySchedule.forEach(t => {
+                if (t.status === 'completed') {
+                    const startArr = t.start.split(':').map(Number);
+                    const endArr = t.end.split(':').map(Number);
+                    const hours = (endArr[0] + endArr[1]/60) - (startArr[0] + startArr[1]/60);
+                    if (hours > 0) totalHours += hours;
+                }
+            });
+            document.getElementById('stat-hours').innerText = totalHours.toFixed(1);
+        }
+
+        // RENDER TODAY'S TASKS ON DASHBOARD
+        function renderDashboardToday() {
+            const container = document.getElementById('dashboard-today-list');
+            // Assuming Wednesday (index 2) as Today for demo continuity
+            const todayIndex = 2; 
+            const todayTasks = appData.weeklySchedule.filter(t => t.day === todayIndex);
+
+            if (todayTasks.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-gray-400 bg-white dark:bg-dark-card rounded-2xl border border-gray-200 dark:border-dark-border text-sm">No tasks scheduled for today. Take a break or add a time block!</div>`;
+                return;
+            }
+
+            container.innerHTML = todayTasks.map(t => {
+                const categoryColors = {
+                    Coding: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+                    Learning: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                    'Job Hunt': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+                    Networking: 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                };
+
+                const isDone = t.status === 'completed';
+                const isSkipped = t.status === 'skipped';
+
+                return `
+                    <div class="p-4 rounded-2xl bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isDone ? 'opacity-75' : ''}">
+                        <div class="flex items-start gap-3">
+                            <button onclick="toggleTaskStatus('${t.id}')" class="mt-0.5 w-6 h-6 rounded-lg border-2 ${isDone ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-300 dark:border-gray-600'} flex items-center justify-center transition">
+                                ${isDone ? '<i data-lucide="check" class="w-4 h-4"></i>' : ''}
+                            </button>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-sm ${isDone ? 'line-through text-gray-400' : ''}">${escapeHtml(t.title)}</span>
+                                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full border ${categoryColors[t.category] || 'bg-gray-100 text-gray-600'}">${t.category}</span>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                                    <span class="flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> ${t.start} - ${t.end}</span>
+                                    ${t.goalId ? `<span class="flex items-center gap-1 text-brand-500"><i data-lucide="target" class="w-3.5 h-3.5"></i> Milestone Task</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-1 self-end sm:self-center">
+                            <button onclick="toggleTaskStatus('${t.id}')" class="px-2.5 py-1 text-xs font-semibold rounded-lg ${isDone ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-emerald-50 hover:text-emerald-600'} transition">
+                                ${isDone ? 'Completed' : 'Mark Done'}
+                            </button>
+                            <button onclick="rescheduleTask('${t.id}')" title="Reschedule" class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteTask('${t.id}')" title="Delete Block" class="p-1.5 text-gray-400 hover:text-rose-500">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // RENDER MINI GOALS IN DASHBOARD
+        function renderDashboardGoalsMini() {
+            const container = document.getElementById('dashboard-goals-mini');
+            container.innerHTML = appData.monthlyGoals.map(g => {
+                const total = g.subtasks.length;
+                const completed = g.subtasks.filter(s => s.done).length;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                return `
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="font-bold truncate max-w-[200px]">${escapeHtml(g.title)}</span>
+                            <span class="font-semibold text-gray-500 dark:text-gray-400">${pct}%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-brand-500 to-indigo-500 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // RENDER 30-DAY HEATMAP
+        function renderHeatmap() {
+            const container = document.getElementById('heatmap-grid');
+            container.innerHTML = '';
+
+            // Generate 30 mock intensity days
+            for (let i = 0; i < 30; i++) {
+                // Determine mock level based on index pattern
+                let level = (i % 5 === 0) ? 4 : (i % 3 === 0) ? 3 : (i % 2 === 0) ? 2 : (i % 7 === 0) ? 0 : 1;
+                if (i === 29) level = 3; // Today
+
+                const cell = document.createElement('div');
+                cell.className = `h-6 rounded-md heat-level-${level} transition hover:scale-110 cursor-pointer flex items-center justify-center text-[9px] font-bold text-gray-600/50 dark:text-white/40`;
+                cell.title = `Day ${i + 1}: ${level * 2} sessions completed`;
+                cell.innerText = i + 1;
+                container.appendChild(cell);
+            }
+        }
+
+        // RENDER WEEKLY GRID
+        function renderWeeklyGrid() {
+            const container = document.getElementById('weekly-grid-container');
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+            container.innerHTML = days.map((dayName, index) => {
+                let tasks = appData.weeklySchedule.filter(t => t.day === index);
+                
+                if (currentActiveCategoryFilter !== 'all') {
+                    tasks = tasks.filter(t => t.category === currentActiveCategoryFilter);
+                }
+
+                const isToday = index === 2; // Wednesday
+
+                return `
+                    <div class="bg-white dark:bg-dark-card border ${isToday ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-gray-200 dark:border-dark-border'} rounded-2xl p-3 flex flex-col space-y-3 min-h-[350px]">
+                        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2">
+                            <div>
+                                <h4 class="font-bold text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">${dayName}</h4>
+                                <span class="text-[11px] font-medium text-gray-400">Sept ${21 + index}</span>
+                            </div>
+                            <button onclick="quickAddTaskForDay(${index})" class="p-1 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-brand-50 text-gray-600 dark:text-gray-300 hover:text-brand-600 transition">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex-1 space-y-2">
+                            ${tasks.length === 0 ? `
+                                <div class="h-full flex items-center justify-center text-center p-2 text-xs text-gray-400 italic">No Blocks</div>
+                            ` : tasks.map(t => {
+                                const isDone = t.status === 'completed';
+                                return `
+                                    <div class="p-2.5 rounded-xl border ${isDone ? 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-800 text-gray-400' : 'bg-brand-50/40 dark:bg-gray-800/80 border-brand-100 dark:border-gray-700 text-gray-800 dark:text-gray-200'} space-y-1 group transition">
+                                        <div class="flex items-start justify-between gap-1">
+                                            <span class="font-bold text-xs leading-tight ${isDone ? 'line-through' : ''}">${escapeHtml(t.title)}</span>
+                                            <button onclick="toggleTaskStatus('${t.id}')" class="text-xs shrink-0 ${isDone ? 'text-emerald-500' : 'text-gray-300 group-hover:text-emerald-500'}">
+                                                <i data-lucide="${isDone ? 'check-circle-2' : 'circle'}" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                        <div class="text-[10px] text-gray-500 dark:text-gray-400 font-medium flex items-center justify-between">
+                                            <span>${t.start} - ${t.end}</span>
+                                            <span class="font-semibold text-brand-600 dark:text-brand-400">${t.category}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // RENDER MONTHLY GOALS VIEW
+        function renderMonthlyGoalsView() {
+            const container = document.getElementById('monthly-goals-container');
+            container.innerHTML = appData.monthlyGoals.map(g => {
+                const total = g.subtasks.length;
+                const completed = g.subtasks.filter(s => s.done).length;
+                const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                return `
+                    <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border p-5 rounded-2xl shadow-sm space-y-4">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-800">${escapeHtml(g.category)}</span>
+                                <h4 class="font-bold text-base mt-2">${escapeHtml(g.title)}</h4>
+                            </div>
+                            <button onclick="deleteGoal('${g.id}')" class="text-gray-400 hover:text-rose-500 p-1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-medium">
+                                <span class="text-gray-500">Progress</span>
+                                <span class="font-bold">${completed} / ${total} Subtasks (${pct}%)</span>
+                            </div>
+                            <div class="w-full bg-gray-100 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                            <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Milestone Sub-tasks</span>
+                            <div class="space-y-1.5">
+                                ${g.subtasks.map(st => `
+                                    <div class="flex items-center justify-between text-xs p-2 rounded-xl bg-gray-50 dark:bg-gray-800/40">
+                                        <label class="flex items-center gap-2 cursor-pointer flex-1">
+                                            <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubtask('${g.id}', '${st.id}')" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                            <span class="${st.done ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-300'} font-medium">${escapeHtml(st.text)}</span>
+                                        </label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // TASK ACTIONS
+        function toggleTaskStatus(id) {
+            const task = appData.weeklySchedule.find(t => t.id === id);
+            if (task) {
+                task.status = task.status === 'completed' ? 'pending' : 'completed';
+                saveState();
+                showToast(task.status === 'completed' ? 'Great job! Time block completed. 🔥' : 'Task marked as pending.');
+            }
+        }
+
+        function rescheduleTask(id) {
+            const task = appData.weeklySchedule.find(t => t.id === id);
+            if (task) {
+                task.day = (task.day + 1) % 7;
+                saveState();
+                showToast('Task rescheduled to next day!');
+            }
+        }
+
+        function deleteTask(id) {
+            appData.weeklySchedule = appData.weeklySchedule.filter(t => t.id !== id);
+            saveState();
+            showToast('Time block removed.');
+        }
+
+        function toggleSubtask(goalId, subtaskId) {
+            const goal = appData.monthlyGoals.find(g => g.id === goalId);
+            if (goal) {
+                const st = goal.subtasks.find(s => s.id === subtaskId);
+                if (st) {
+                    st.done = !st.done;
+                    saveState();
+                }
+            }
+        }
+
+        function deleteGoal(id) {
+            appData.monthlyGoals = appData.monthlyGoals.filter(g => g.id !== id);
+            saveState();
+            showToast('Goal milestone deleted.');
+        }
+
+        function filterCategory(cat) {
+            currentActiveCategoryFilter = cat;
+            document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white";
+                } else {
+                    btn.className = "cat-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300";
+                }
+            });
+            renderWeeklyGrid();
+        }
+
+        // MODAL HANDLERS
+        function openModal(type) {
+            document.getElementById(`modal-${type}`).classList.remove('hidden');
+        }
+
+        function closeModal(type) {
+            document.getElementById(`modal-${type}`).classList.add('hidden');
+        }
+
+        function quickAddTaskForDay(dayIndex) {
+            document.getElementById('task-day').value = dayIndex;
+            openModal('task');
+        }
+
+        function populateGoalDropdown() {
+            const select = document.getElementById('task-goal-link');
+            select.innerHTML = `<option value="">None / Standalone</option>` + appData.monthlyGoals.map(g => `<option value="${g.id}">${escapeHtml(g.title)}</option>`).join('');
+        }
+
+        function handleSaveTask(e) {
+            e.preventDefault();
+            const newTask = {
+                id: 't_' + Date.now(),
+                title: document.getElementById('task-title').value,
+                day: parseInt(document.getElementById('task-day').value),
+                category: document.getElementById('task-category').value,
+                start: document.getElementById('task-start').value,
+                end: document.getElementById('task-end').value,
+                goalId: document.getElementById('task-goal-link').value,
+                status: 'pending'
+            };
+
+            appData.weeklySchedule.push(newTask);
+            saveState();
+            closeModal('task');
+            document.getElementById('form-task').reset();
+            showToast('New time block scheduled successfully!');
+        }
+
+        function handleSaveGoal(e) {
+            e.preventDefault();
+            const rawSubtasks = document.getElementById('goal-subtasks').value;
+            const subtaskArr = rawSubtasks.split(',').filter(s => s.trim().length > 0).map((stText, idx) => ({
+                id: 'st_' + Date.now() + '_' + idx,
+                text: stText.trim(),
+                done: false
+            }));
+
+            const newGoal = {
+                id: 'g_' + Date.now(),
+                title: document.getElementById('goal-title').value,
+                category: document.getElementById('goal-category').value,
+                subtasks: subtaskArr
+            };
+
+            appData.monthlyGoals.push(newGoal);
+            saveState();
+            closeModal('goal');
+            document.getElementById('form-goal').reset();
+            showToast('New monthly career milestone added!');
+        }
+
+        // TOAST SYSTEM
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 px-4 py-3 rounded-xl shadow-xl text-xs font-bold flex items-center gap-2 transform translate-y-2 opacity-0 transition-all duration-300 pointer-events-auto';
+            toast.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> ${escapeHtml(message)}`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // NOTIFICATION SIMULATOR
+        function triggerNotificationSim() {
+            const banner = document.getElementById('notification-banner');
+            banner.classList.remove('hidden');
+            showToast('Simulating upcoming time-block reminder notification!');
+        }
+
+        function dismissNotif() {
+            document.getElementById('notification-banner').classList.add('hidden');
+        }
+
+        function handleNotifAction(action) {
+            dismissNotif();
+            showToast('Time block started! Focus mode on.');
+        }
+
+        function shiftWeek(direction) {
+            showToast(direction > 0 ? 'Viewing Next Week Calendar' : 'Viewing Previous Week Calendar');
+        }
+
+        // DARK MODE TOGGLE
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            document.querySelector('.dark-mode-label').innerText = isDark ? 'Dark' : 'Light';
+        }
+
+        // ANALYTICS CHARTS (Chart.js)
+        function initCharts() {
+            const ctxCat = document.getElementById('chart-category').getContext('2d');
+            categoryChartObj = new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Coding', 'Learning', 'Job Hunt', 'Networking'],
+                    datasets: [{
+                        data: [12, 6, 4, 3],
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#f43f5e'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                    }
+                }
+            });
+
+            const ctxTrend = document.getElementById('chart-trend').getContext('2d');
+            trendChartObj = new Chart(ctxTrend, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Completed Sessions',
+                        data: [2, 2, 1, 0, 0, 0, 0],
+                        backgroundColor: '#6366f1',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function updateCharts() {
+            if (!categoryChartObj || !trendChartObj) return;
+
+            // Compute category breakdown
+            const catMap = { Coding: 0, Learning: 0, 'Job Hunt': 0, Networking: 0 };
+            const dayMap = [0, 0, 0, 0, 0, 0, 0];
+
+            appData.weeklySchedule.forEach(t => {
+                if (t.status === 'completed') {
+                    if (catMap[t.category] !== undefined) catMap[t.category]++;
+                    if (t.day >= 0 && t.day < 7) dayMap[t.day]++;
+                }
+            });
+
+            categoryChartObj.data.datasets[0].data = Object.values(catMap);
+            categoryChartObj.update();
+
+            trendChartObj.data.datasets[0].data = dayMap;
+            trendChartObj.update();
+        }
+
+        // UTILS
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
